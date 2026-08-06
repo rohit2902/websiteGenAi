@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
 import authRoute from "./routes/auth.route.js";
 import websiteRoute from "./routes/website.route.js";
 import billingRoute from "./routes/billing.route.js";
@@ -33,10 +34,19 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.static("./public"))
+app.use(express.static("./public"));
 
 app.use("/api/auth", authRoute);
 app.use("/api/website", websiteRoute);
 app.use("/api/billing", billingRoute);
+
+// Wildcard fallback route to serve SPA index.html for client routes (e.g., /generate, /dashboard)
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve("./public/index.html"), (err) => {
+    if (err) {
+      res.status(404).json({ success: false, message: "Route not found" });
+    }
+  });
+});
 
 export default app;
