@@ -1,9 +1,7 @@
 import userModel from "../models/user.model.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { generateResponse } from "../services/model.js";
-import { extrajson } from "../utlis/extratJson.js";
-dotenv.config()
+dotenv.config();
 
 export const loginUser = async (req, res) => {
   try {
@@ -75,22 +73,9 @@ export const logoutUser = async (req, res) => {
   }
 };
 
-export const getMe = async (req, res)=>{
-      res.status(200).json({
+export const getMe = async (req, res) => {
+  res.status(200).json({
     success: true,
     user: req.user,
   });
-}
-
-// export const getDemo = async(req , res)=>{
-//   try{
-//     const result = await generateResponse("exlpain js")
-   
-   
-//     const data = await extrajson(result)
-//     console.log(data)
-//     return res.status(200).json(data)
-//   }catch(err){
-//     return res.status(500).json({message:err})
-//   }
-// }
+};

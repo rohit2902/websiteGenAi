@@ -1,46 +1,19 @@
 const openRoute_url = "https://openrouter.ai/api/v1/chat/completions";
 
-const DEPRECATED_MODELS = new Set([
-  "mistralai/mistral-7b-instruct:free",
-  "mistralai/mistral-7b-instruct",
-  "meta-llama/llama-3-8b-instruct:free",
-]);
-
-const DEFAULT_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
-  "google/gemini-2.0-flash-lite-preview-02-05:free",
-  "google/gemini-2.0-pro-exp-02-05:free",
-  "google/gemini-2.0-flash-001",
-  "google/gemini-flash-1.5-8b",
-];
+// Single primary AI model strictly used for website generation
+const PRIMARY_MODEL = "google/gemini-2.0-flash-exp:free";
 
 export const generateResponse = async (input) => {
-  const apiKey =
+  const apiKey = (
     process.env.OPEN_ROUTE_API_KEY ||
     process.env["OPEN_ROUTE_API_KEY "] ||
-    "";
+    ""
+  ).trim();
 
-  const cleanApiKey = apiKey ? apiKey.trim() : "";
-
-  if (!cleanApiKey) {
-    throw new Error("OPEN_ROUTE_API_KEY is missing in environment variables");
-  }
-
-  // Build candidate models list: strictly Gemini models only
-  const candidateModels = [];
-  
-  if (
-    process.env.AI_MODEL &&
-    process.env.AI_MODEL.trim().startsWith("google/gemini") &&
-    !DEPRECATED_MODELS.has(process.env.AI_MODEL.trim())
-  ) {
-    candidateModels.push(process.env.AI_MODEL.trim());
-  }
-
-  for (const m of DEFAULT_MODELS) {
-    if (!candidateModels.includes(m) && !DEPRECATED_MODELS.has(m)) {
-      candidateModels.push(m);
-    }
+  if (!apiKey) {
+    const errorMsg = "[AI Service Error] OPEN_ROUTE_API_KEY is missing in environment variables";
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   let messages = [];
@@ -59,43 +32,45 @@ export const generateResponse = async (input) => {
     messages = input;
   }
 
-  let lastError = null;
+  const modelToUse = (process.env.AI_MODEL && process.env.AI_MODEL.trim().startsWith("google/gemini"))
+    ? process.env.AI_MODEL.trim()
+    : PRIMARY_MODEL;
 
-  for (const model of candidateModels) {
-    try {
-      console.log(`[AI Service] Attempting call to OpenRouter with model: ${model}`);
-      const res = await fetch(openRoute_url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${cleanApiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://websitegenai.onrender.com",
-          "X-Title": "GenWeb AI",
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          temperature: 0.2,
-        }),
-      });
+  console.log(`[AI Service] Sending request to OpenRouter using primary model: ${modelToUse}`);
 
-      if (!res.ok) {
-        const errText = await res.text();
-        console.warn(`[AI Service] Model ${model} returned error status ${res.status}: ${errText}`);
-        lastError = new Error(`OpenRouter (${model}) status ${res.status}: ${errText}`);
-        continue; // Try next model
-      }
+  try {
+    const res = await fetch(openRoute_url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://websitegenai.onrender.com",
+        "X-Title": "GenWeb AI",
+      },
+      body: JSON.stringify({
+        model: modelToUse,
+        messages: messages,
+        temperature: 0.2,
+      }),
+    });
 
-      const data = await res.json();
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        console.log(`[AI Service] Success with model: ${model}`);
-        return data.choices[0].message.content;
-      }
-    } catch (err) {
-      console.warn(`[AI Service] Model ${model} fetch exception:`, err.message);
-      lastError = err;
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[AI Service Error] OpenRouter (${modelToUse}) status ${res.status}: ${errText}`);
+      throw new Error(`OpenRouter (${modelToUse}) status ${res.status}: ${errText}`);
     }
-  }
 
-  throw lastError || new Error("All AI models failed to return a response from OpenRouter");
+    const data = await res.json();
+
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      console.log(`[AI Service] Website generation successful using model: ${modelToUse}`);
+      return data.choices[0].message.content;
+    } else {
+      console.error(`[AI Service Error] Invalid response structure from OpenRouter:`, JSON.stringify(data));
+      throw new Error("OpenRouter returned empty or invalid choices structure");
+    }
+  } catch (err) {
+    console.error(`[AI Service Exception] Website generation failed:`, err.message);
+    throw err;
+  }
 };
