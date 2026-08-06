@@ -1,11 +1,21 @@
 const openRoute_url = "https://openrouter.ai/api/v1/chat/completions";
 
-const MODELS = [
-  process.env.AI_MODEL || "google/gemini-2.0-flash-001",
+const DEPRECATED_MODELS = new Set([
+  "mistralai/mistral-7b-instruct:free",
+  "mistralai/mistral-7b-instruct",
+  "meta-llama/llama-3-8b-instruct:free",
+]);
+
+const DEFAULT_MODELS = [
+  "google/gemini-2.0-flash-lite-preview-02-05:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "qwen/qwen-2.5-coder-32b-instruct:free",
+  "deepseek/deepseek-r1:free",
+  "mistralai/mistral-small-24b-instruct-2501:free",
+  "google/gemini-2.0-flash-exp:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
   "deepseek/deepseek-chat",
   "qwen/qwen-2.5-coder-32b-instruct",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
 ];
 
 export const generateResponse = async (input) => {
@@ -18,6 +28,19 @@ export const generateResponse = async (input) => {
 
   if (!cleanApiKey) {
     throw new Error("OPEN_ROUTE_API_KEY is missing in environment variables");
+  }
+
+  // Build candidate models list: exclude known deprecated models
+  const candidateModels = [];
+  
+  if (process.env.AI_MODEL && !DEPRECATED_MODELS.has(process.env.AI_MODEL.trim())) {
+    candidateModels.push(process.env.AI_MODEL.trim());
+  }
+
+  for (const m of DEFAULT_MODELS) {
+    if (!candidateModels.includes(m) && !DEPRECATED_MODELS.has(m)) {
+      candidateModels.push(m);
+    }
   }
 
   let messages = [];
@@ -38,7 +61,7 @@ export const generateResponse = async (input) => {
 
   let lastError = null;
 
-  for (const model of MODELS) {
+  for (const model of candidateModels) {
     try {
       console.log(`[AI Service] Attempting call to OpenRouter with model: ${model}`);
       const res = await fetch(openRoute_url, {
@@ -46,7 +69,7 @@ export const generateResponse = async (input) => {
         headers: {
           Authorization: `Bearer ${cleanApiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
+          "HTTP-Referer": "https://websitegenai.onrender.com",
           "X-Title": "GenWeb AI",
         },
         body: JSON.stringify({
