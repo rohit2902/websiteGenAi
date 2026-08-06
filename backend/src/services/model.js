@@ -7,15 +7,11 @@ const DEPRECATED_MODELS = new Set([
 ]);
 
 const DEFAULT_MODELS = [
-  "google/gemini-2.0-flash-lite-preview-02-05:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "qwen/qwen-2.5-coder-32b-instruct:free",
-  "deepseek/deepseek-r1:free",
-  "mistralai/mistral-small-24b-instruct-2501:free",
   "google/gemini-2.0-flash-exp:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "deepseek/deepseek-chat",
-  "qwen/qwen-2.5-coder-32b-instruct",
+  "google/gemini-2.0-flash-lite-preview-02-05:free",
+  "google/gemini-2.0-pro-exp-02-05:free",
+  "google/gemini-2.0-flash-001",
+  "google/gemini-flash-1.5-8b",
 ];
 
 export const generateResponse = async (input) => {
@@ -30,10 +26,14 @@ export const generateResponse = async (input) => {
     throw new Error("OPEN_ROUTE_API_KEY is missing in environment variables");
   }
 
-  // Build candidate models list: exclude known deprecated models
+  // Build candidate models list: strictly Gemini models only
   const candidateModels = [];
   
-  if (process.env.AI_MODEL && !DEPRECATED_MODELS.has(process.env.AI_MODEL.trim())) {
+  if (
+    process.env.AI_MODEL &&
+    process.env.AI_MODEL.trim().startsWith("google/gemini") &&
+    !DEPRECATED_MODELS.has(process.env.AI_MODEL.trim())
+  ) {
     candidateModels.push(process.env.AI_MODEL.trim());
   }
 
