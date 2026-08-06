@@ -1,7 +1,7 @@
 const openRoute_url = "https://openrouter.ai/api/v1/chat/completions";
 
 // Single primary AI model strictly used for website generation
-const PRIMARY_MODEL = "google/gemini-2.0-flash-exp:free";
+const PRIMARY_MODEL = "google/gemma-4-26b-a4b-it:free";
 
 export const generateResponse = async (input) => {
   const apiKey = (
