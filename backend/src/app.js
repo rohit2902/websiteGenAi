@@ -41,7 +41,7 @@ app.use("/api/website", websiteRoute);
 app.use("/api/billing", billingRoute);
 
 // Wildcard fallback route to serve SPA index.html for client routes (e.g., /generate, /dashboard)
-app.get("*", (req, res) => {
+app.get("{*path}", (req, res) => {
   res.sendFile(path.resolve("./public/index.html"), (err) => {
     if (err) {
       res.status(404).json({ success: false, message: "Route not found" });
