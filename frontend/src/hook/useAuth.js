@@ -15,9 +15,13 @@ const useAuth = () => {
     try {
       dispatch(setLoading(true));
       const data = await login({ email, name, avatar });
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      }
       dispatch(setUser(data.user));
       return data;
     } catch (error) {
+      localStorage.removeItem("token");
       dispatch(logout());
       dispatch(setError(error.response?.data?.message));
       throw error;
@@ -37,6 +41,7 @@ const useAuth = () => {
       }
       return data;
     } catch (error) {
+      localStorage.removeItem("token");
       dispatch(logout());
       dispatch(setError(error.response?.data?.message));
     } finally {
@@ -50,8 +55,10 @@ const useAuth = () => {
     try {
       dispatch(setLoading(true));
       await LogOut();
+      localStorage.removeItem("token");
       dispatch(logout());
     } catch (error) {
+      localStorage.removeItem("token");
       dispatch(setError(error.response?.data?.message));
     } finally {
       dispatch(setLoading(false));

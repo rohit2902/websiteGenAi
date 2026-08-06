@@ -13,9 +13,23 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), strip
 
 app.use(express.json());
 app.use(cookieParser());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://websitegenai.onrender.com",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://websitegenai.onrender.com",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.length === 0) {
+        callback(null, true);
+      } else {
+        callback(null, origin);
+      }
+    },
     credentials: true,
   })
 );
