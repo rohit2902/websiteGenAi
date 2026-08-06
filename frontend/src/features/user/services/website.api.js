@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || "https://websitegenai.onrender.c
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 65000, // 65 seconds max before client aborts pending state
 });
 
 api.interceptors.request.use((config) => {
@@ -14,6 +15,16 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      error.message = "Request timed out after 65s. Please check your network and try again.";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export async function generateWebsite(prompt) {
   try {

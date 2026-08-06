@@ -19,7 +19,9 @@ function Generate() {
   const [targetWebsiteId, setTargetWebsiteId] = useState(null);
 
   const handleGenerate = async () => {
+    if (isGenerating || loading) return;
     setGenerationError("");
+
     if (!prompt.trim()) {
       return alert("Please enter a website prompt description");
     }
@@ -44,7 +46,7 @@ function Generate() {
       }
     } catch (err) {
       console.error("Generation error:", err);
-      setGenerationError(err.message || "Failed to generate website");
+      setGenerationError(err.message || "Failed to generate website. Please try again.");
       setIsSuccess(false);
     }
   };
@@ -59,7 +61,9 @@ function Generate() {
   const handleRetry = () => {
     setGenerationError("");
     setIsGenerating(false);
-    handleGenerate();
+    setTimeout(() => {
+      handleGenerate();
+    }, 100);
   };
 
   return (

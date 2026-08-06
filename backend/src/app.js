@@ -9,6 +9,20 @@ import { stripeWebhook } from "./services/stripeWebhook.js";
 
 const app = express();
 
+// Request Timeout Middleware (60s limit to prevent hanging HTTP sockets)
+app.use((req, res, next) => {
+  res.setTimeout(60000, () => {
+    if (!res.headersSent) {
+      console.error(`[Server Timeout Error] Request ${req.method} ${req.originalUrl || req.url} timed out after 60s`);
+      res.status(504).json({
+        success: false,
+        message: "Server timeout: AI generation took too long. Please try again.",
+      });
+    }
+  });
+  next();
+});
+
 // Stripe Webhook Endpoint (Raw body parser before express.json)
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 

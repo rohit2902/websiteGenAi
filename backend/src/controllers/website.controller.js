@@ -6,304 +6,31 @@ import messageModel from "../models/message.model.js";
 import creditTransactionModel from "../models/creditTransaction.model.js";
 import AdmZip from "adm-zip";
 
-const masterPrompt = `
-YOU ARE A PRINCIPAL FULL-STACK ARCHITECT,
-A SENIOR UI/UX ENGINEER,
-AND A SENIOR FRONTEND DEVELOPER.
-
-YOUR JOB IS TO BUILD BEAUTIFUL, MODERN, PRODUCTION-READY WEBSITES
-THAT CAN BE DIRECTLY DEPLOYED WITHOUT ANY MODIFICATION.
-
-==================================================
-USER REQUIREMENT
-==================================================
-{USER_PROMPT}
-
-==================================================
-PROJECT REQUIREMENTS
-==================================================
-
-Generate a COMPLETE WEBSITE PROJECT.
-
-The project must be production-ready.
-
-Every file must contain complete working code.
-
-No placeholders.
-
-No TODO comments.
-
-No pseudo code.
-
-No missing implementations.
-
-Everything must work immediately.
-
-==================================================
-DESIGN REQUIREMENTS
-==================================================
-
-The UI must look like it was designed by an experienced product designer.
-
-Use:
-
-• Modern 2026-2027 design language
-• Proper spacing
-• Rounded corners
-• Professional typography
-• Beautiful gradients
-• Shadows
-• Hover animations
-• Smooth transitions
-• Responsive cards
-• Modern buttons
-• Nice color palette
-
-DO NOT create beginner-looking websites.
-
-==================================================
-RESPONSIVE REQUIREMENTS
-==================================================
-
-The website MUST be fully responsive.
-
-Support:
-
-• Mobile (<768px)
-• Tablet (768px-1024px)
-• Desktop (>1024px)
-
-Requirements:
-
-• Mobile-first CSS
-
-• CSS Grid
-
-• Flexbox
-
-• Media Queries
-
-• Responsive typography
-
-• Responsive images
-
-• No horizontal scrolling
-
-• Touch friendly UI
-
-• Responsive navigation
-
-==================================================
-CONTENT REQUIREMENTS
-==================================================
-
-Generate REAL BUSINESS CONTENT.
-
-DO NOT USE:
-
-Lorem Ipsum
-
-Dummy text
-
-Placeholder paragraphs
-
-Generate meaningful headings, paragraphs and descriptions.
-
-==================================================
-IMAGES
-==================================================
-
-Only use:
-
-https://images.unsplash.com/
-
-Every image URL MUST include
-
-?auto=format&fit=crop&w=1200&q=80
-
-Images must be responsive.
-
-==================================================
-TECHNICAL REQUIREMENTS
-==================================================
-
-Generate complete source code.
-
-Allowed technologies:
-
-HTML
-
-CSS
-
-JavaScript
-
-React (if requested)
-
-Vite
-
-No incomplete code.
-
-No syntax errors.
-
-No missing imports.
-
-No broken code.
-
-Every generated file must compile successfully.
-
-==================================================
-IF USER DOES NOT SPECIFY A FRAMEWORK
-==================================================
-
-Generate a complete HTML website.
-
-index.html must include
-
-<style>
-
-<script>
-
-inside the document.
-
-==================================================
-IF USER ASKS FOR REACT
-==================================================
-
-Generate a proper Vite React project.
-
-Include files such as
-
-package.json
-
-vite.config.js
-
-index.html
-
-src/main.jsx
-
-src/App.jsx
-
-src/components/*
-
-src/pages/*
-
-src/assets/* (if needed)
-
-==================================================
-SPA REQUIREMENTS
-==================================================
-
-Include:
-
-Home
-
-About
-
-Services
-
-Features
-
-Testimonials
-
-Pricing (if applicable)
-
-Contact
-
-Navigation must work.
-
-Active navigation state.
-
-Smooth scrolling.
-
-No dead buttons.
-
-Forms must validate.
-
-==================================================
-OUTPUT FORMAT
-==================================================
-
-Return ONLY VALID JSON.
-
-DO NOT WRITE:
-
-\`\`\`
-
-markdown
-
-explanations
-
-notes
-
-text before JSON
-
-text after JSON
-
-The response MUST be directly parsable using JSON.parse().
-
-==================================================
-JSON SCHEMA
-==================================================
-
+const masterPrompt = `You are a Principal Full-Stack Architect. Generate a complete, modern, production-ready website for the following requirement:
+
+USER REQUIREMENT:
+"{USER_PROMPT}"
+
+REQUIREMENTS:
+- Modern UI/UX design with mobile-first responsive layout.
+- Real business content (NO lorem ipsum, NO placeholders, NO TODOs).
+- Self-contained working HTML/CSS/JS code.
+- Responsive Unsplash images (URL format: https://images.unsplash.com/... ?auto=format&fit=crop&w=1200&q=80).
+- Return ONLY valid raw JSON without markdown formatting.
+
+JSON SCHEMA:
 {
-  "projectName": "Project Name",
-
+  "projectName": "Project Title",
   "summary": "Short professional summary",
-
-  "framework": "html | react",
-
+  "framework": "html",
   "files": [
-
-    {
-      "path": "index.html",
-      "content": "..."
-    },
-
-    {
-      "path": "style.css",
-      "content": "..."
-    },
-
-    {
-      "path": "script.js",
-      "content": "..."
-    }
-
+    { "path": "index.html", "content": "..." },
+    { "path": "style.css", "content": "..." },
+    { "path": "script.js", "content": "..." }
   ]
-}
+}`;
 
-==================================================
-FINAL VALIDATION
-==================================================
-
-Before responding verify:
-
-✓ Valid JSON
-
-✓ No markdown
-
-✓ JSON.parse() succeeds
-
-✓ Every file has content
-
-✓ No empty files
-
-✓ No syntax errors
-
-✓ Responsive
-
-✓ Production ready
-
-✓ Business ready
-
-If ANY rule fails, regenerate the response before replying.
-
-RETURN ONLY RAW JSON.
-`;
-
-const editPromptTemplate = `
-YOU ARE A SENIOR FULL-STACK ARCHITECT MODIFYING AN EXISTING WEBSITE.
-THE USER WANTS TO MAKE CHANGES TO THE EXISTING WEBSITE CODEBASE.
+const editPromptTemplate = `You are a Senior Full-Stack Architect. Modify the existing website codebase according to the user request.
 
 EXISTING FILES:
 {EXISTING_FILES}
@@ -312,23 +39,18 @@ USER CHANGE REQUEST:
 "{USER_PROMPT}"
 
 INSTRUCTIONS:
-1. Carefully analyze the existing files and the user's change request.
-2. Update ONLY the necessary files or add new files if required. Do NOT change files that do not need modification.
-3. Keep the overall website functioning smoothly, responsive, and styled modernly.
-4. Update "index.html" so that it incorporates the requested changes and renders properly in an iframe preview.
+1. Update ONLY necessary files or add new files if needed.
+2. Keep the website functioning, responsive, and modern.
+3. Return ONLY valid raw JSON without markdown formatting.
 
-OUTPUT FORMAT (STRICT RAW JSON ONLY):
+JSON SCHEMA:
 {
-  "projectName": "Updated Project Title or keep existing",
+  "projectName": "Updated Project Title",
   "summary": "Summary of changes made",
   "files": [
-    {
-      "path": "index.html",
-      "content": "..."
-    }
+    { "path": "index.html", "content": "..." }
   ]
-}
-`;
+}`;
 
 // Helper function to extract and compile a self-contained index.html from files array
 const compileFilesToHtml = (files, fallbackCode = "") => {
@@ -394,6 +116,7 @@ const compileFilesToHtml = (files, fallbackCode = "") => {
 
 // POST /api/website/generate
 export const generateWebsite = async (req, res) => {
+  const reqStartTime = Date.now();
   try {
     const { prompt } = req.body;
 
@@ -403,6 +126,8 @@ export const generateWebsite = async (req, res) => {
         message: "Prompt is required",
       });
     }
+
+    console.log(`[Generate API Received] Prompt: "${prompt.slice(0, 60)}..."`);
 
     const user = await userModel.findById(req.user._id);
 
@@ -421,25 +146,44 @@ export const generateWebsite = async (req, res) => {
     }
 
     const finalPrompt = masterPrompt.replace("{USER_PROMPT}", prompt);
+    const promptFormattedTime = Date.now();
+    console.log(`[Prompt Generated] Time taken: ${promptFormattedTime - reqStartTime}ms`);
 
     let raw = "";
     let parsed = null;
 
-    for (let i = 0; i < 3; i++) {
+    // AI Call Step
+    const aiStartTime = Date.now();
+    try {
       raw = await generateResponse(finalPrompt);
-      parsed = await extrajson(raw);
+      parsed = extrajson(raw);
+    } catch (aiErr) {
+      console.warn(`[Generate API Warning] First AI model call failed: ${aiErr.message}`);
+    }
 
-      if (parsed && (parsed.files || parsed.code)) {
-        break;
+    // Fallback if parsing failed or AI call errored
+    if (!parsed || (!parsed.files && !parsed.code)) {
+      console.warn(`[Generate API Retry] Retrying with secondary fallback model...`);
+      try {
+        raw = await generateResponse(finalPrompt, "google/gemma-4-31b-it:free");
+        parsed = extrajson(raw);
+      } catch (fallbackErr) {
+        console.error(`[Generate API Error] Secondary fallback call failed: ${fallbackErr.message}`);
       }
     }
+
+    const aiEndTime = Date.now();
+    console.log(`[AI Response Received] Execution time: ${aiEndTime - aiStartTime}ms`);
 
     if (!parsed || (!parsed.files && !parsed.code)) {
       return res.status(500).json({
         success: false,
-        message: "AI returned invalid response format",
+        message: "AI returned invalid response format. Please try again.",
       });
     }
+
+    const jsonParsedTime = Date.now();
+    console.log(`[JSON Parsed] Time taken: ${jsonParsedTime - aiEndTime}ms. Summary: "${parsed.summary || 'N/A'}"`);
 
     const filesArray = parsed.files || [
       {
@@ -452,12 +196,14 @@ export const generateWebsite = async (req, res) => {
     const title = parsed.projectName || prompt.slice(0, 30);
     const summaryMsg = parsed.summary || "Website generated successfully!";
 
-const generateSlug = (text) => {
-  const base = text ? text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") : "site";
-  return `${base.slice(0, 20)}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-};
+    const generateSlug = (text) => {
+      const base = text ? text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") : "site";
+      return `${base.slice(0, 20)}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    };
 
-    // Create website
+    const dbStartTime = Date.now();
+
+    // Create website document
     const website = await websiteModel.create({
       user: user._id,
       title: title,
@@ -493,6 +239,10 @@ const generateSlug = (text) => {
       reason: `Project Creation (${website.title})`,
     });
 
+    const dbEndTime = Date.now();
+    const totalExecutionTime = dbEndTime - reqStartTime;
+    console.log(`[DB Saved] Time taken: ${dbEndTime - dbStartTime}ms. [Total Execution Time]: ${totalExecutionTime}ms`);
+
     return res.status(201).json({
       success: true,
       message: summaryMsg,
@@ -511,7 +261,7 @@ const generateSlug = (text) => {
       remainingCredit: user.credit,
     });
   } catch (err) {
-    console.error("Generate Website Error:", err);
+    console.error(`[Generate Website Fatal Error] after ${Date.now() - reqStartTime}ms:`, err);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -522,6 +272,7 @@ const generateSlug = (text) => {
 
 // POST /api/website/:id/edit or changes
 export const changes = async (req, res) => {
+  const reqStartTime = Date.now();
   try {
     const { prompt } = req.body;
     const websiteId = req.params.id || req.body.websiteId;
@@ -532,6 +283,8 @@ export const changes = async (req, res) => {
         message: "Prompt is required",
       });
     }
+
+    console.log(`[Edit API Received] WebsiteId: ${websiteId}, Prompt: "${prompt.slice(0, 60)}..."`);
 
     const user = await userModel.findById(req.user._id);
     if (!user) {
@@ -568,14 +321,26 @@ export const changes = async (req, res) => {
     let raw = "";
     let parsed = null;
 
-    for (let i = 0; i < 3; i++) {
+    const aiStartTime = Date.now();
+    try {
       raw = await generateResponse(finalPrompt);
-      parsed = await extrajson(raw);
+      parsed = extrajson(raw);
+    } catch (aiErr) {
+      console.warn(`[Edit API Warning] First AI model call failed: ${aiErr.message}`);
+    }
 
-      if (parsed && (parsed.files || parsed.code)) {
-        break;
+    if (!parsed || (!parsed.files && !parsed.code)) {
+      console.warn(`[Edit API Retry] Retrying with secondary fallback model...`);
+      try {
+        raw = await generateResponse(finalPrompt, "meta-llama/llama-3.3-70b-instruct:free");
+        parsed = extrajson(raw);
+      } catch (fallbackErr) {
+        console.error(`[Edit API Error] Secondary fallback call failed: ${fallbackErr.message}`);
       }
     }
+
+    const aiEndTime = Date.now();
+    console.log(`[AI Response Received] Execution time: ${aiEndTime - aiStartTime}ms`);
 
     if (!parsed || (!parsed.files && !parsed.code)) {
       return res.status(500).json({
@@ -644,6 +409,9 @@ export const changes = async (req, res) => {
       .find({ website: website._id })
       .sort({ createdAt: 1 });
 
+    const totalExecutionTime = Date.now() - reqStartTime;
+    console.log(`[Edit Website Completed] Total time: ${totalExecutionTime}ms`);
+
     return res.status(200).json({
       success: true,
       message: summaryMsg,
@@ -652,7 +420,7 @@ export const changes = async (req, res) => {
       remainingCredit: user.credit,
     });
   } catch (err) {
-    console.error("Edit Website Error:", err);
+    console.error(`[Edit Website Fatal Error] after ${Date.now() - reqStartTime}ms:`, err);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
